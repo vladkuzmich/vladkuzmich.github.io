@@ -1,0 +1,14 @@
+name: barbapi
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - nodejs
+  - python>3.7
+  - pandas
+  - matplotlib
+  - jupyterlab>3.0.7
+  - numpy
+  - plotly
+  - seaborn

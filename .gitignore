@@ -1,0 +1,14 @@
+
+.DS_Store
+
+tools/.ipynb_checkpoints/
+
+notebooks/.ipynb_checkpoints/
+
+notebooks/python/.ipynb_checkpoints/
+
+notebooks/.RData
+
+notebooks/.Rhistory
+
+specifications/.ipynb_checkpoints/

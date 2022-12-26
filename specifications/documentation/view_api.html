@@ -1,0 +1,2312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="SwaggerIU"
+  />
+  <title>SwaggerUI</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.4.1/swagger-ui.css" />
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@4.4.1/swagger-ui-bundle.js" crossorigin></script>
+  <script src="https://unpkg.com/swagger-ui-dist@4.4.1/swagger-ui-standalone-preset.js" crossorigin></script>
+  <script>
+
+  jtest = {
+    "openapi": "3.0.0",
+    "info": {
+      "version": "1.0.0",
+      "title": "BARB API",
+      "description": "A web api for accessing BARB's panel data",
+      "contact": {
+        "name": "BARB API Support",
+        "url": "http://www.barb.co.uk/support",
+        "email": "support@barb.co.uk"
+      }
+    },
+    "servers": [
+      {
+        "url": "www.barb.co.uk"
+      }
+    ],
+    "paths": {
+      "/panels": {
+        "get": {
+          "summary": "Get the list of panels.",
+          "operationId": "panelsList",
+          "responses": {
+            "200": {
+              "description": "Returns a complete list of panel codes and panel names.  This is useful for finding the correct panel code when using panel code as a query parameter for other endpoints.",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Panel"
+                    }
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Unexpected error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/stations": {
+        "get": {
+          "summary": "Get the list of stations.",
+          "operationId": "stationsList",
+          "responses": {
+            "200": {
+              "description": "Returns a complete list of station codes and station names.  This is useful for finding the correct station code when using station code as a query parameter for other endpoints.",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Station"
+                    }
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Unexpected error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/advertising_spots": {
+        "get": {
+          "summary": "Get the audience ratings data for advertising spots by day, station and panel.",
+          "operationId": "listAdvertisingSpots",
+          "parameters": [
+            {
+              "name": "max_transmission_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the latest date for which advertising spot data will be returned.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "min_transmission_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the earliest date for which advertising spot data will be returned.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "station_code",
+              "in": "query",
+              "description": "The station on which the spot was broadcast. If the station code is not known then a list of station codes  and station names can be accessed from the stations endpoint [/stations](#/stationsList).  If the station code is not specified then all stations will be returned.\n**Note:** If a specific BARB panel is requested and the station is not operating in the area covered by that panel then no data will be returned.\n",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 1
+            },
+            {
+              "name": "panel_code",
+              "in": "query",
+              "description": "A unique integer that identifies the BARB panel that the viewing figures are for. If the barb panel is not specified then all panels will be returned.  If the panel code is not known then a list of panel codes  and panel names can be accessed from the panels endpoint [/panels](#/panelsList).",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 1
+            },
+            {
+              "name": "advertiser_name",
+              "in": "query",
+              "description": "This is the advertiser or client name. Advertiser names are standardised by the attribution service (Clearcast) on a weekly basis.",
+              "schema": {
+                "type": "string"
+              },
+              "example": "unilever"
+            },
+            {
+              "name": "buyer_name",
+              "in": "query",
+              "description": "This is the name of the buying agency responsible for booking the commercial. If the commercial is bought directly from the advertiser, the advertiser name is replicated in the buyer name field. Buyer names are standardised by the attribution service (Clearcast) on a weekly basis.",
+              "schema": {
+                "type": "string"
+              },
+              "example": "mindshare"
+            },
+            {
+              "name": "consolidated",
+              "in": "query",
+              "description": "If set to true the audience sizes in the returned data will also include [time-shifted viewing](). If this parameter is omitted then it will be assumed that the value is False.",
+              "schema": {
+                "type": "boolean"
+              },
+              "example": true
+            },
+            {
+              "name": "standardise_audiences",
+              "in": "query",
+              "description": "If set to 'using_duration' the audience sizes will be adjusted by dividing the audience size by the length (in seconds) of the spot and multiplying by 30 (to create 30 second equivalents). If set to 'using_rate_factors' the audience sizes will be adjusted by multiplying the audience size by the appropriate [rate factor](). If no value is provided then the audience sizes will not be adjusted.",
+              "schema": {
+                "type": "string"
+              },
+              "example": "using_duration"
+            },
+            {
+              "name": "last_updated_greater_than",
+              "in": "query",
+              "description": "This is used to filter out all items that have not changed since the given date. This is useful when using the API to refresh a data set since only those records that have been modified since the date supplied will be returned. Please note if you are using an endpoint which works with either [BARB polling days]() or [BARB reporting days]() then you will need to adjust this value to reflect non-standard day  lengths.",
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Details for a set of advertising spots",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "events": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/SpotEvent"
+                        }
+                      },
+                      "audience_categories": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/AudienceCategory"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Unexpected error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/audiences_by_time": {
+        "get": {
+          "summary": "Get the audience sizes for various time periods by day, station and panel. (Previously known as *Impacts by Time*).",
+          "operationId": "listAudiencesByTime",
+          "parameters": [
+            {
+              "name": "max_transmission_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the latest date for which data will be returned. Note that this endpoint will use [BARB polling days]() unless the parameter *use_polling_days* is set to false.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "min_transmission_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the earliest date for which data will be returned. Note that this endpoint will use [BARB polling days]() unless the parameter *use_polling_days* is set to false.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "station_code",
+              "in": "query",
+              "description": "The station for which the audience sizes will be calculated. If the station code is not known then a list of station codes  and station names can be accessed from the stations endpoint [/stations](#/stationsList).  If the station code is not specified then all stations will be returned.\n**Note:** If a specific BARB panel is requested and the station is not operating in the area covered by that panel then no data will be returned.\n",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 1
+            },
+            {
+              "name": "panel_code",
+              "in": "query",
+              "description": "A unique integer that identifies the BARB panel that the viewing figures are for. If the barb panel is not specified then all panels will be returned.  If the panel code is not known then a list of panel codes  and panel names can be accessed from the panels endpoint [/panels](#/panelsList).",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 1
+            },
+            {
+              "name": "time_period_length",
+              "in": "query",
+              "required": true,
+              "description": "This sets the length of the time periods for which the audiences sizes are calculated. Possible values are 1, 5 or 15 minutes.",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 15
+            },
+            {
+              "name": "viewing_status",
+              "in": "query",
+              "required": true,
+              "description": "Determines whether the results are to be restricted to [live]() or to [VOSDAL]() or whether they will be [consolidated](). The possible values are *live*, *vosdal* and *consolidated*.",
+              "schema": {
+                "type": "string"
+              },
+              "example": "vodsal"
+            },
+            {
+              "name": "last_updated_greater_than",
+              "in": "query",
+              "description": "This is used to filter out all items that have not changed since the given date. This is useful when using the API to refresh a data set since only those records that have been modified since the date supplied will be returned. Please note if you are using an endpoint which works with either [BARB polling days]() or [BARB reporting days]() then you will need to adjust this value to reflect non-standard day  lengths.",
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "use_polling_days",
+              "in": "query",
+              "description": "If this parameter is set to false then a standard 00:00 to 23:59 24 hour day will be used as opposed to a [BARB polling day]. This is set to true by default.",
+              "schema": {
+                "type": "boolean"
+              },
+              "example": true
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Details for a set of transmission time periods",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "events": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/AudienceEvent"
+                        }
+                      },
+                      "audience_categories": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/AudienceCategory"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Unexpected error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/households": {
+        "get": {
+          "summary": "Get descriptive data for BARB panel households.",
+          "operationId": "listHouseholds",
+          "parameters": [
+            {
+              "name": "panel_start_date",
+              "in": "query",
+              "required": true,
+              "description": "A string in the format yyyy-mm-dd. The query will bring back all households that were on the panel at some point between the `panel_start_date` and the `panel_end_date`, including those that were on there for the entire duration. ",
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "panel_end_date",
+              "in": "query",
+              "required": true,
+              "description": "A string in the format yyyy-mm-dd. The query will bring back all households that were on the panel at some point between the `panel_start_date` and the `panel_end_date`, including those that were on there for the entire duration. ",
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "panel_code",
+              "in": "query",
+              "description": "A unique integer that identifies the BARB panel that the viewing figures are for. If the barb panel is not specified then all panels will be returned.  If the panel code is not known then a list of panel codes  and panel names can be accessed from the panels endpoint [/panels](#/panelsList).",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 1
+            },
+            {
+              "name": "panel_region",
+              "in": "query",
+              "description": "The region of the BARB panel to which the household belongs. For a list of available options see [BARB panel region codes]().",
+              "schema": {
+                "type": "string"
+              },
+              "example": "london"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Returns a list of households, where each household is a combination of household data and a list of the devices present in the household.",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "households": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "household_data": {
+                              "$ref": "#/components/schemas/Household"
+                            },
+                            "devices": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/Device"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Unexpected error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/household_viewing": {
+        "get": {
+          "summary": "Brings back full viewing  history of a household",
+          "operationId": "listHouseholdViewing",
+          "parameters": [
+            {
+              "name": "household_number",
+              "in": "query",
+              "description": "The unique indentifier for the household.",
+              "required": true,
+              "schema": {
+                "type": "integer"
+              },
+              "example": 9399
+            },
+            {
+              "name": "max_transmission_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the latest date for which viewing data will be returned.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "min_transmission_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the earliest date for which viewing data will be returned.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "station_code",
+              "in": "query",
+              "description": "The station on which the spot was broadcast. If the station code is not known then a list of station codes  and station names can be accessed from the stations endpoint [/stations](#/stationsList).  If the station code is not specified then all stations will be returned.\n**Note:** If a specific BARB panel is requested and the station is not operating in the area covered by that panel then no data will be returned.\n",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 1
+            },
+            {
+              "name": "panel_code",
+              "in": "query",
+              "description": "A unique integer that identifies the BARB panel that the viewing figures are for. If the barb panel is not specified then all panels will be returned.  If the panel code is not known then a list of panel codes  and panel names can be accessed from the panels endpoint [/panels](#/panelsList).",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 1
+            },
+            {
+              "name": "last_updated_greater_than",
+              "in": "query",
+              "description": "This is used to filter out all items that have not changed since the given date. This is useful when using the API to refresh a data set since only those records that have been modified since the date supplied will be returned. Please note if you are using an endpoint which works with either [BARB polling days]() or [BARB reporting days]() then you will need to adjust this value to reflect non-standard day  lengths.",
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Details of household viewing",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "viewer": {
+                        "oneOf": [
+                          {
+                            "$ref": "#/components/schemas/PanelMember"
+                          },
+                          {
+                            "$ref": "#/components/schemas/Guest"
+                          }
+                        ]
+                      },
+                      "spots_viewed": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/SpotEvent"
+                        }
+                      },
+                      "programmes_viewed": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ProgrammeEvent"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/panel_members": {
+        "get": {
+          "summary": "Get descriptive data for BARB panel members.",
+          "operationId": "listPanelMembers",
+          "parameters": [
+            {
+              "name": "panel_start_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the date on which the panel member joined the panel.",
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "panel_end_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the date on which the panel member left the panel.",
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "panel_code",
+              "in": "query",
+              "description": "A unique integer that identifies the BARB panel that the viewing figures are for. If the barb panel is not specified then all panels will be returned.  If the panel code is not known then a list of panel codes  and panel names can be accessed from the panels endpoint [/panels](#/panelsList).",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 1
+            },
+            {
+              "name": "panel_region",
+              "in": "query",
+              "description": "The region of the BARB panel to which the panel member belongs.",
+              "schema": {
+                "type": "string"
+              },
+              "example": "london"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Details for a set of panel members",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/PanelMember"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Unexpected error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/programme_audience": {
+        "get": {
+          "summary": "Brings back full viewer-level details of the viewers of a specified programme including data about their households and their devices. The user must supply one of the following: `transmission_log_programme_name`, `metabroadcast_programme_name`, `broadcaster_content_id`, `metabroadcast_content_id`.",
+          "operationId": "listProgrammeAudience",
+          "parameters": [
+            {
+              "name": "transmission_log_programme_name",
+              "in": "query",
+              "description": "The programme name as it was supplied in the transmission log provided by the broadcaster.",
+              "schema": {
+                "type": "string"
+              },
+              "example": "MEDBBBB123060"
+            },
+            {
+              "name": "metabroadcast_programme_name",
+              "in": "query",
+              "description": "The programme name as supplied by metabroadcast",
+              "schema": {
+                "type": "string"
+              },
+              "example": "tbc"
+            },
+            {
+              "name": "broadcaster_content_id",
+              "in": "query",
+              "description": "The broadcaster’s internal inventory/product catalogue identifier that uniquely describes each asset.",
+              "schema": {
+                "type": "string"
+              },
+              "example": "C4:57431/00"
+            },
+            {
+              "name": "metabroadcast_content_id",
+              "in": "query",
+              "description": "The id assigned to the content by MetaBroadcast (a third party who provide meta data for broadcasted content.)",
+              "schema": {
+                "type": "string"
+              },
+              "example": "tbc"
+            },
+            {
+              "name": "station_code",
+              "in": "query",
+              "description": "The station that was viewed during the session. If the station code is not known then a list of station codes  and station names can be accessed from the stations endpoint [/stations](#/stationsList).  If the station code is not specified then all stations will be returned.\n",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 1
+            },
+            {
+              "name": "activity_types",
+              "in": "query",
+              "description": "A list of activity types by which to filter the group sessions. The activity type are:\n\n  - tv live\n  - tv overnight\n  - tv c7\n  - tv 1-28\n  - tv non-linear\n  - total tv screen time\n  - online devices\n  - all",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ActivityType"
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Details of the audience of a specific programme.",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "viewer": {
+                        "oneOf": [
+                          {
+                            "$ref": "#/components/schemas/PanelMember"
+                          },
+                          {
+                            "$ref": "#/components/schemas/Guest"
+                          }
+                        ]
+                      },
+                      "household": {
+                        "$ref": "#/components/schemas/Household"
+                      },
+                      "device": {
+                        "$ref": "#/components/schemas/Device"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Unexpected error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/programme_ratings": {
+        "get": {
+          "summary": "Get the audience ratings data for broadcasted content by day, station and panel.",
+          "operationId": "listProgrammeRatings",
+          "parameters": [
+            {
+              "name": "max_transmission_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the latest date for which programme data will be returned.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "min_transmission_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the earliest date for which programme data will be returned.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "station_code",
+              "in": "query",
+              "description": "The station on which the programme was broadcast. If the station code is not known then a list of station codes  and station names can be accessed from the stations endpoint [/stations](#/stationsList).  If the station code is not specified then all stations will be returned.\n\n**Note:** If a specific BARB panel is requested and the station is not operating in the area covered by that panel then no data will be returned.\n",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 1
+            },
+            {
+              "name": "panel_code",
+              "in": "query",
+              "description": "A unique integer that identifies the BARB panel that the viewing figures are for. If the barb panel is not specified then all panels will be returned.  If the panel code is not known then a list of panel codes  and panel names can be accessed from the panels endpoint [/panels](#/panelsList).",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 1
+            },
+            {
+              "name": "consolidated",
+              "in": "query",
+              "description": "If set to true the audience sizes in the returned data will also include [time-shifted viewing](). If this parameter is omitted then it will be assumed that the value is False.",
+              "schema": {
+                "type": "boolean"
+              },
+              "example": true
+            },
+            {
+              "name": "last_updated_greater_than",
+              "in": "query",
+              "description": "This is used to filter out all items that have not changed since the given date. This is useful when using the API to refresh a data set since only those records that have been modified since the date supplied will be returned. Please note if you are using an endpoint which works with either [BARB polling days]() or [BARB reporting days]() then you will need to adjust this value to reflect non-standard day  lengths.",
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Details for a set of programmes",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "events": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ProgrammeEvent"
+                        }
+                      },
+                      "audience_categories": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/AudienceCategory"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Unexpected error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/programme_schedule": {
+        "get": {
+          "summary": "Get all the programmes scheduled by each station.",
+          "operationId": "listProgrammeSchedule",
+          "parameters": [
+            {
+              "name": "max_scheduled_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the latest date for which programme schedules will be returned.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "min_scheduled_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the earliest date for which the programme schedules will be returned.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "station_code",
+              "in": "query",
+              "description": "The station which scheduled the programmes. If the station code is not known then a list of station codes  and station names can be accessed from the stations endpoint [/stations](#/stationsList).  If the station code is not specified then all stations will be returned.\n",
+              "schema": {
+                "type": "string"
+              },
+              "example": "bbc_one_hd_england"
+            },
+            {
+              "name": "last_updated_greater_than",
+              "in": "query",
+              "description": "This is used to filter out all items that have not changed since the given date. This is useful when using the API to refresh a data set since only those records that have been modified since the date supplied will be returned. Please note if you are using an endpoint which works with either [BARB polling days]() or [BARB reporting days]() then you will need to adjust this value to reflect non-standard day  lengths.",
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The programmes scheduled",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "station": {
+                        "$ref": "#/components/schemas/Station"
+                      },
+                      "station_schedule": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ProgrammeEvent"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Unexpected error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/spot_audience": {
+        "get": {
+          "summary": "Brings back full viewer-level details of the viewers of a specified spot including data about their households and their devices.",
+          "operationId": "listSpotAudience",
+          "parameters": [
+            {
+              "name": "clearcast_commercial_number",
+              "in": "query",
+              "description": "The unique identifier assigned by clearcast to the spot.",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "example": "MEDBBBB123060"
+            },
+            {
+              "name": "panel_region",
+              "in": "query",
+              "description": "The region of the BARB panel to which the household belongs. For a list of available options see [BARB panel region codes]().",
+              "schema": {
+                "type": "string"
+              },
+              "example": "london"
+            },
+            {
+              "name": "last_updated_greater_than",
+              "in": "query",
+              "description": "This is used to filter out all items that have not changed since the given date. This is useful when using the API to refresh a data set since only those records that have been modified since the date supplied will be returned. Please note if you are using an endpoint which works with either [BARB polling days]() or [BARB reporting days]() then you will need to adjust this value to reflect non-standard day  lengths.",
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Details of the audience of a specific spot",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "viewer": {
+                        "oneOf": [
+                          {
+                            "$ref": "#/components/schemas/PanelMember"
+                          },
+                          {
+                            "$ref": "#/components/schemas/Guest"
+                          }
+                        ]
+                      },
+                      "household": {
+                        "$ref": "#/components/schemas/Household"
+                      },
+                      "device": {
+                        "$ref": "#/components/schemas/Device"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Unexpected error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/spot_schedule": {
+        "get": {
+          "summary": "Get all the spots scheduled by each station.",
+          "operationId": "listSpotSchedule",
+          "parameters": [
+            {
+              "name": "max_scheduled_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the latest date for which spot schedules will be returned.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "min_scheduled_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the earliest date for which the spot schedules will be returned.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "station_code",
+              "in": "query",
+              "description": "The station which scheduled the spots. If the station code is not known then a list of station codes  and station names can be accessed from the stations endpoint [/stations](#/stationsList).  If the station code is not specified then all stations will be returned.\n",
+              "schema": {
+                "type": "string"
+              },
+              "example": "bbc_one_hd_england"
+            },
+            {
+              "name": "last_updated_greater_than",
+              "in": "query",
+              "description": "This is used to filter out all items that have not changed since the given date. This is useful when using the API to refresh a data set since only those records that have been modified since the date supplied will be returned. Please note if you are using an endpoint which works with either [BARB polling days]() or [BARB reporting days]() then you will need to adjust this value to reflect non-standard day  lengths.",
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The spots scheduled",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "station": {
+                        "$ref": "#/components/schemas/Station"
+                      },
+                      "spot_schedule": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/SpotEvent"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Unexpected error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/viewing": {
+        "get": {
+          "summary": "Get all group viewing sessions that match the query parameters. Note that `panel_viewers`, `guest_viewers`, `spots_viewed`, and `programmes_viewed` are lists that can contain more than one item. For example a session could involve three panel members and one guest viewing two programmes and twelve spots.",
+          "operationId": "listGroupViewingSessions",
+          "parameters": [
+            {
+              "name": "max_session_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the latest date for which group viewing sessions will be returned.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "min_session_date",
+              "in": "query",
+              "description": "A string in the format yyyy-mm-dd that represents the earliest date for which group viewing sessions will be returned.",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            },
+            {
+              "name": "station_code",
+              "in": "query",
+              "description": "The station that was viewed during the session. If the station code is not known then a list of station codes  and station names can be accessed from the stations endpoint [/stations](#/stationsList).  If the station code is not specified then all stations will be returned.\n",
+              "schema": {
+                "type": "string"
+              },
+              "example": "bbc_one_hd_england"
+            },
+            {
+              "name": "panel_code",
+              "in": "query",
+              "description": "A unique integer that identifies the BARB panel that the viewing figures are for. If the barb panel is not specified then all panels will be returned.  If the panel code is not known then a list of panel codes  and panel names can be accessed from the panels endpoint [/panels](#/panelsList).",
+              "schema": {
+                "type": "integer"
+              },
+              "example": 1
+            },
+            {
+              "name": "panel_region",
+              "in": "query",
+              "description": "The region of the BARB panel to which the household belongs. For a list of available options see [BARB panel region codes]().",
+              "schema": {
+                "type": "string"
+              },
+              "example": "london"
+            },
+            {
+              "name": "activity_types",
+              "in": "query",
+              "description": "A list of activity types by which to filter the group sessions. The activity types are:\n\n  - tv live\n  - tv overnight\n  - tv c7\n  - tv 1-28\n  - tv non-linear\n  - total tv screen time\n  - online devices\n  - all",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ActivityType"
+                }
+              }
+            },
+            {
+              "name": "last_updated_greater_than",
+              "in": "query",
+              "description": "This is used to filter out all items that have not changed since the given date. This is useful when using the API to refresh a data set since only those records that have been modified since the date supplied will be returned. Please note if you are using an endpoint which works with either [BARB polling days]() or [BARB reporting days]() then you will need to adjust this value to reflect non-standard day  lengths.",
+              "schema": {
+                "type": "string",
+                "format": "yyyy-mm-dd"
+              },
+              "example": "2022-01-01T00:00:00.000Z"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Details for a set of group viewing sessions",
+              "headers": {
+                "x-next": {
+                  "description": "A link to the next page of responses",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/GroupViewingSession"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Unexpected error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "SpotEvent": {
+          "type": "object",
+          "description": "Information about the advertising spot. Note that a Spot (for our purposes) is an event. It has a start time and a duration. For live viewing of broadcasted spots, the start time will be the same for everyone who viewed the spots. For other formats (e.g. SVOD) the start time will vary depending on when viewing was initiated. Contrast this with the spot content which is not an event.",
+          "properties": {
+            "panel": {
+              "$ref": "#/components/schemas/Panel"
+            },
+            "station": {
+              "$ref": "#/components/schemas/Station"
+            },
+            "spot_type": {
+              "type": "string",
+              "description": "A spot has the type *spot* or *teleshopping spot*",
+              "example": "spot"
+            },
+            "spot_start_datetime": {
+              "$ref": "#/components/schemas/Datetime"
+            },
+            "spot_duration": {
+              "type": "integer",
+              "description": "The duration of the spot in seconds.",
+              "example": 120
+            },
+            "preceeding_programme_name": {
+              "type": "string",
+              "description": "If the spot appeared in the end break of a programme then this should be the name of that programme (that is the `transmission_log_programme_name`). Otherwise the value should be `not applicable`.",
+              "example": "sherlock"
+            },
+            "succeeding_programme_name": {
+              "type": "string",
+              "description": "If the spot appeared in the end break of a programme then this should be the name of the programme that follows (that is the `transmission_log_programme_name`). Otherwise the value should be `not applicable`.",
+              "example": "sherlock"
+            },
+            "break_type": {
+              "type": "string",
+              "description": "There are three break types they are:\n- going in break\n- centre break\n- end break\nIf the broadcaster does not supply the break type, this field will be left blank.\n",
+              "example": "end break"
+            },
+            "broadcaster_spot_number": {
+              "type": "string",
+              "description": "A number, unique within broadcaster, used to enable data users to link [stagger-cast channels](). Both the [parent]() and [child]() channels should carry the identical code.",
+              "example": 1232
+            },
+            "clearcast_information": {
+              "$ref": "#/components/schemas/ClearcastInformation"
+            },
+            "campaign_approval_id": {
+              "type": "string",
+              "description": "A 10 digit numeric code identifying the campaign to which the spot belongs. This field is optional but if it is used it should be the [CARIA approval ID]().",
+              "example": 5167361861
+            },
+            "sales_house": {
+              "$ref": "#/components/schemas/SalesHouse"
+            },
+            "position_in_break": {
+              "type": "string",
+              "description": "The position of the spot within the break. Allowed values are: \n\n  - `solus` - the break only contains this single spot.\n  - `first` - the spot is the first in the break.\n  - `last` - the spot is the last in the break.\n  - `second` - the spot is the second in the break but not the last.\n  - `penultimate` - the spot is the penultimate in the break but not the first or the last.\n  - `other` - the position of the spot in the break does not fall into any of the above categories.\n  - `not supplied` - the position of the spot was not supplied by the broadcaster.",
+              "example": "solus"
+            },
+            "platforms": {
+              "$ref": "#/components/schemas/Platforms"
+            },
+            "audience_views": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/AudienceView"
+              }
+            }
+          }
+        },
+        "Panel": {
+          "type": "object",
+          "description": "Information about the BARB panel.",
+          "properties": {
+            "panel_code": {
+              "type": "integer",
+              "description": "A unique identifier for the BARB panel.",
+              "example": 1
+            },
+            "panel_region": {
+              "type": "string",
+              "description": "The geographical region that the panel covers.",
+              "example": "north west"
+            },
+            "is_macro_region": {
+              "type": "boolean",
+              "description": "Flag that indicates whether the panel is a macro panel.",
+              "example": true
+            }
+          }
+        },
+        "Station": {
+          "type": "object",
+          "description": "Information about the station that broadcasted the items.",
+          "properties": {
+            "station_code": {
+              "type": "integer",
+              "description": "A unique identifier for the broadcasting station.",
+              "example": 1
+            },
+            "station_name": {
+              "type": "string",
+              "description": "The station name. For a list of possible values see [BARB station names]().",
+              "example": "bbc one hd england"
+            },
+            "split_transmission": {
+              "type": "boolean",
+              "example": true
+            }
+          }
+        },
+        "ProgrammeEvent": {
+          "type": "object",
+          "description": "Information about a specific programme. Note that a Programme (for our purposes) is an event. It has a start time and a duration. For live viewing of broadcasted programmes, the start time will be the same for everyone who viewed the programme. For other formats (e.g. SVOD) the start time will vary depending on when viewing was initiated. Programme content however is not an event.",
+          "properties": {
+            "panel": {
+              "$ref": "#/components/schemas/Panel"
+            },
+            "station": {
+              "$ref": "#/components/schemas/Station"
+            },
+            "transmission_log_programme_name": {
+              "type": "string",
+              "description": "The programme name as it was supplied in the transmission log provided by the broadcaster.",
+              "example": "sherlock"
+            },
+            "programme_type": {
+              "type": "string",
+              "description": "A programme has the type *programme* or *teleshopping window”",
+              "example": "programme"
+            },
+            "programme_start_datetime": {
+              "$ref": "#/components/schemas/Datetime"
+            },
+            "programme_duration": {
+              "type": "integer",
+              "description": "The duration of the programme in seconds",
+              "example": 120
+            },
+            "spans_normal_day": {
+              "type": "boolean",
+              "description": "Indicates whether a programme crosses the normal 06.00 start of the broadcast day.",
+              "example": true
+            },
+            "sponsor": {
+              "$ref": "#/components/schemas/Sponsor"
+            },
+            "broadcaster_transmission_code": {
+              "type": "string",
+              "description": "A number, unique within broadcaster, used to enable data users to link [stagger-cast channels](). Both the [parent]() and [child]() channels should carry the identical code.",
+              "example": 1232
+            },
+            "live_status": {
+              "type": "string",
+              "description": "The possible values are:\n\n- *live*: content is broadcast as the event is happening\n- *as-live*: content that is re-transmitted as if live, for example, where a broadcaster replays a football match in its entirety.\n- *not-live*: content that cannot be classed as live or as-live. Edits of or cuts to live or as-live content are also classed as ”not-live”\n",
+              "example": "live"
+            },
+            "uk_premier": {
+              "type": "boolean",
+              "description": "Set to *true* if this is the premier of the programme in the UK.",
+              "example": true
+            },
+            "broadcaster_premier": {
+              "type": "string",
+              "description": "Set to *true* if this is the premier of the programme for the broadcaster.",
+              "example": true
+            },
+            "repeat": {
+              "type": "boolean",
+              "description": "Set to *true* if this a repeat of the programme",
+              "example": true
+            },
+            "programme_content": {
+              "$ref": "#/components/schemas/ProgrammeContent"
+            },
+            "platforms": {
+              "$ref": "#/components/schemas/Platforms"
+            },
+            "audience_views": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/AudienceView"
+              }
+            }
+          }
+        },
+        "Platforms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of all the platforms on which the items were transmitted.",
+          "example": [
+            "analogue terrestrial",
+            "analogue satellite"
+          ]
+        },
+        "Sponsor": {
+          "type": "object",
+          "description": "Information about sponsorship. Only returned if the programme was sponsored.",
+          "properties": {
+            "sponsor_code": {
+              "type": "string",
+              "description": "The sponsorship code provided by the broadcaster.",
+              "example": "tbc"
+            },
+            "bumpers_included": {
+              "type": "boolean",
+              "description": "Set to *true* if bumpers are included in the times.",
+              "example": true
+            }
+          }
+        },
+        "ProgrammeContent": {
+          "type": "object",
+          "description": "Describes the programme content.",
+          "properties": {
+            "content_name": {
+              "type": "string",
+              "description": "Standard name created by MetaBroadcast from a combination of Title, Series Number and Episode Number fields if provided. This field is mandatory. Programmes will appear as “brand name” e.g. “Sherlock”. Episodes will be made up from a combination of title, series and episode number fields where available *Example:* “Sherlock: Series 1, Episode 2. Films will be made up of “FILM: Content Name (YYYY)” e.g. “FILM: The Favourite (2019)”\n",
+              "example": "sherlock: series 1, episode 2"
+            },
+            "barb_content_id": {
+              "type": "integer",
+              "description": "A unique identifier assigned to an item of content by Kantar."
+            },
+            "broadcaster_content_id": {
+              "type": "string",
+              "description": "The broadcaster’s internal inventory/product catalogue identifier that uniquely describes each asset.",
+              "example": "C4:57431/00"
+            },
+            "metabroadcast_information": {
+              "$ref": "#/components/schemas/MetaBroadcastInformation"
+            },
+            "episode": {
+              "$ref": "#/components/schemas/Episode"
+            },
+            "series": {
+              "$ref": "#/components/schemas/Series"
+            },
+            "genre": {
+              "type": "string",
+              "description": "The genre of the programme. See [BARB programme genres]() for a list of all possible values"
+            }
+          }
+        },
+        "Episode": {
+          "type": "object",
+          "description": "Information related to the specific episode when the programme is a series.",
+          "properties": {
+            "episode_number": {
+              "type": "integer",
+              "description": "The episode number reported by the broadcaster. If the programme is not an episode of a series then this data item is omitted.",
+              "example": 3
+            },
+            "episode_name": {
+              "type": "string",
+              "description": "The episode title as reported by the broadcaster. If the programme is not an episode of a series then this data item is omitted.",
+              "example": "A Scandal in Belgravia"
+            }
+          }
+        },
+        "Series": {
+          "type": "object",
+          "description": "The series that the programme is part of. If the programme is not an episode of a series then this data item is omitted.",
+          "properties": {
+            "series_number": {
+              "type": "string",
+              "description": "The number of the series or season.",
+              "example": 2
+            },
+            "number_of_episodes": {
+              "type": "string",
+              "description": "The number of episodes in the series or season.",
+              "example": 13
+            },
+            "broadcaster_series_id": {
+              "type": "string",
+              "description": "The broadcaster’s unique identifier for the series.",
+              "example": "tbc"
+            }
+          }
+        },
+        "AudienceEvent": {
+          "type": "object",
+          "description": "Information about a specific transmission time period. Note that a AudienceEvent is an event. It has a start time and duration.",
+          "properties": {
+            "date_of_transmission": {
+              "type": "string",
+              "format": "yyyy-mm-dd",
+              "description": "The date on which the transmission time periods occurred.",
+              "example": "12-03-2022"
+            },
+            "panel": {
+              "$ref": "#/components/schemas/Panel"
+            },
+            "station": {
+              "$ref": "#/components/schemas/Station"
+            },
+            "activity": {
+              "type": "string",
+              "description": "A description of the kind of activity for which the average audience size is being estimated. See [BARB viewing activities]() for a complete list of possible values and their descriptions. example: Live viewing - Linear Advertising"
+            },
+            "transmission_time_period_duration_mins": {
+              "type": "integer",
+              "description": "The length of the transmission time period. Possible values are 1, 5 or 15 minutes.",
+              "example": 5
+            },
+            "transmission_time_period_start": {
+              "$ref": "#/components/schemas/Datetime"
+            },
+            "platforms": {
+              "$ref": "#/components/schemas/Platforms"
+            },
+            "audience_views": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/AudienceView"
+              }
+            }
+          }
+        },
+        "AudienceView": {
+          "type": "object",
+          "description": "An estimate of the actual number of viewers for a particular BARB audience.",
+          "properties": {
+            "audience_code": {
+              "type": "integer",
+              "description": "The unique identifier for the audience group assigned by BARB.",
+              "example": 254001
+            },
+            "audience_size_hundreds": {
+              "type": "integer",
+              "description": "The estimated size of the actual audience for the commercial, programme or transmission time period in hundreds.",
+              "example": 241
+            }
+          }
+        },
+        "AudienceCategory": {
+          "type": "object",
+          "description": "An estimate of the number of viewers for a particular BARB audience.",
+          "properties": {
+            "audience_code": {
+              "type": "integer",
+              "description": "The unique identifier for the audience group assigned by BARB.",
+              "example": 254001
+            },
+            "audience_name": {
+              "type": "string",
+              "description": "The name of the audience as set by BARB.",
+              "example": "adults abc1 16-24"
+            },
+            "audience_target_size_hundreds": {
+              "type": "integer",
+              "description": "The estimated size of the target audience for the commercial, programme or transmission time period in hundreds.",
+              "example": 1002
+            },
+            "consolidated": {
+              "type": "boolean",
+              "description": "Set to true if the estimate also includes those who watched on time-shifted viewing.",
+              "example": true
+            }
+          }
+        },
+        "SalesHouse": {
+          "type": "object",
+          "description": "Information about the TV commercial sales house that sold the airtime.",
+          "properties": {
+            "sales_house_name": {
+              "type": "string",
+              "description": "The name of the sales house who placed the spot. For a list of the possible values see [BARB sales houses]().",
+              "example": "4Sales"
+            },
+            "sales_house_brand_description": {
+              "type": "string",
+              "description": "This is a description of the spot, or title as supplied by the broadcaster. If no title was supplied, the default title “no description supplied” will be used.",
+              "example": "tbc"
+            }
+          }
+        },
+        "MetaBroadcastInformation": {
+          "type": "object",
+          "description": "A placeholder for the programme meta data due to be supplied by MetaBroadcast.",
+          "properties": {
+            "metabroadcast_content_id": {
+              "type": "string",
+              "description": "The id assigned to the content by MetaBroadcast (a third party who provide meta data for broadcasted content.)",
+              "example": "tbc"
+            }
+          }
+        },
+        "ClearcastInformation": {
+          "type": "object",
+          "description": "Information about the commercial provided by clearcast (a non-governmental organisation that approves British tv advertising).",
+          "properties": {
+            "commercial_number": {
+              "type": "string",
+              "description": "The commercial number as supplied by the Clearcast with all forward slashes (/) removed.\n**Note**: Some broadcasters do not use Clearcast numbers –such broadcasters are asked to use the first three characters as an identifier. The number supplied on the file is that received from the broadcaster.\n",
+              "example": "MEDBBBB123060"
+            },
+            "match_group_code": {
+              "type": "string",
+              "example": 1
+            },
+            "match_group_name": {
+              "type": "string",
+              "example": "England, Scotland and Wales"
+            },
+            "buyer_code": {
+              "type": "string",
+              "description": "This is a 7-character unique buying agency code",
+              "example": "tbc"
+            },
+            "buyer_name": {
+              "type": "string",
+              "description": "This is a name of the buying agency responsible for booking the commercial. If the commercial is bought directly from the advertiser, the advertiser name is replicated in the buyer name field. Buyer names are standardised by the Attribution service on a weekly basis.",
+              "example": "tbc"
+            },
+            "advertiser_code": {
+              "type": "string",
+              "description": "This is a 7-character unique advertiser code.",
+              "example": "A000001"
+            },
+            "advertiser_name": {
+              "type": "string",
+              "description": "This is the advertiser or client name. Advertiser names are standardised by the Attribution service on a weekly basis.",
+              "example": "tbc"
+            },
+            "holding_company_code": {
+              "type": "string",
+              "description": "This is a 7-character unique holding company code.",
+              "example": "H000001"
+            },
+            "holding_company_name": {
+              "type": "string",
+              "description": "This is the name of the advertiser’s holding company. Holding company names are standardised by the Attribution service on a weekly basis.",
+              "example": "tbc"
+            },
+            "product_code": {
+              "type": "string",
+              "description": "This is a 7-character unique product code.",
+              "example": "P100001"
+            },
+            "product_name": {
+              "type": "string",
+              "description": "This is a product name collected from Broadcast inbound files. Product names are standardised by the Attribution service on a daily basis.",
+              "example": "tbc"
+            },
+            "nmr_category_code": {
+              "type": "string",
+              "description": "This is the 6-character category code assigned by Nielsen Media Research. Nielsen category code data is only supplied to current Nielsen Media Research subscribers, or companies who have prior written agreement from Nielsen to receive the data.",
+              "example": "020105"
+            },
+            "clearcast_commercial_title": {
+              "type": "string",
+              "description": "This is a description of the commercial as inputted by Clearcast. If the commercial number provided is not identified from the Clearcast VTR database this field is populated with 'N/A'. Similarly, if Clearcast has not included a commercial title then the field is also listed as 'N/A'.",
+              "example": "tbc"
+            },
+            "clearcast_telephone_number": {
+              "type": "string",
+              "description": "This is the telephone number that appears in a commercial. The information is inputted by Clearcast from the commercial script. If no record is available the field is populated with 'N/A'.",
+              "example": "tbc"
+            },
+            "commercial_spot_length": {
+              "type": "string",
+              "description": "This is the 3-character code indicating the length of the commercial provided by Clearcast. If the spot length is not known then this field is populated with n/a.",
+              "example": "010"
+            },
+            "clearcast_web_address": {
+              "type": "string",
+              "description": "This is the web address that appears in a commercial, the information is supplied by Clearcast. If no record is available the field is populated with 'N/A'.",
+              "example": "www.google.com"
+            }
+          }
+        },
+        "PanelMember": {
+          "type": "object",
+          "description": "Note `panel_member_weights` are only available when this object is returned using the `viewing` endpoint.",
+          "properties": {
+            "panel_member_id": {
+              "description": "A unique id identifying the panel member.",
+              "type": "string",
+              "example": 125635
+            },
+            "date_of_birth": {
+              "description": "The month and year of birth of the panel member. Day is withheld for data protection purposes.",
+              "format": "mm-yyyy",
+              "type": "string",
+              "example": "07-1973"
+            },
+            "dependency_of_children": {
+              "description": "Allowed values are: `parent/guardian`, `dependent child`, `neither`, `unclassified`",
+              "example": "parent/guardian",
+              "type": "string"
+            },
+            "disability": {
+              "description": "The extent to which normal daily activities are limited by long-term disability/health problem. Allowed values are: `yes`, ` limited a lot`, `limited a little`, `no`, `unclassified`",
+              "example": "yes",
+              "type": "string"
+            },
+            "ethnic_origin": {
+              "description": "Allowed values are: `white british`, `black – caribbean`, `black – african`, `black – other`, `asian – indian`, `asian – pakistani`, `asian – bangladeshi`, `chinese`, `any other background`, `other white`, `mixed – white/black caribbean`, `mixed – white/black african`, `mixed – white/asian`, `other mixed background`, `other asian background`, `don’t know`, `refused`, `unclassified`",
+              "example": "white british",
+              "type": "string"
+            },
+            "gaelic_language": {
+              "description": "Gaelic speaking fluency: the extent to which they can understand, speak write and read Gaelic. Allowed values are: `extremely well`, `quite well`, `a little`, `can understand and speak some gaelic`, `can understand a little gaelic`, `not gaelic speaking/not in scotland`, `unclassified`",
+              "example": "extremely well",
+              "type": "string"
+            },
+            "household_status": {
+              "description": "Allowed values are: `neither houseperson nor head of household`, `houseperson and not head of household`, `head of household and not houseperson`, `both houseperson and head of household`, `unclassified`",
+              "example": "neither houseperson nor head of household",
+              "type": "string"
+            },
+            "last_updated": {
+              "description": "The date on which the panel member's data was last updated.",
+              "format": "dd-mm-yyyy",
+              "type": "string",
+              "example": "07-07-1973"
+            },
+            "life_stage": {
+              "description": "Allowed values are: `single`, ` no children`, ` with parents`, ` aged 16-34`, `single`, ` no children`, ` on own or with friends`, ` aged 16-34`, `couple`, ` no children`, ` aged 16-34`, `single`, ` no children`, ` on own or with friends`, ` aged 35-54`, `couple`, ` no children`, ` aged 35-54`, `single`, ` no children`, ` on own`, ` aged 55+`, `couple`, ` no children`, ` aged 55+`, `either`, ` youngest children 0-4`, ` includes single parents`, `either`, ` youngest children 5-9`, ` includes single parents`, `either youngest children 10-15`, ` includes single parents`, `either`, ` children 16+ none 0-15`, ` aged 35+`, `other`, `unclassified`",
+              "example": "single",
+              "type": "string"
+            },
+            "marital_status": {
+              "description": "Allowed values are: `married / living as married`, `single / divorced / separated`, `unclassified`",
+              "example": "married / living as married",
+              "type": "string"
+            },
+            "person_membership_status": {
+              "description": "Allowed values are: `person on panel`, `person no longer on panel`",
+              "example": "person on panel",
+              "type": "string"
+            },
+            "sex": {
+              "description": "Allowed values are: `male`, `female`",
+              "example": "male",
+              "type": "string"
+            },
+            "terminal_age_of_education": {
+              "description": "Allowed values are: `15 years and under`, `16-18 years`, `19 + years`, `still in education`, `unclassified`",
+              "example": "15 years and under",
+              "type": "string"
+            },
+            "welsh_language": {
+              "description": "Welsh speaking fluency: the extent to which they can understand, speak write and read Welsh. Allowed values are: `extremely well`, `quite well`, `a little`, `can understand and speak some gaelic`, `can understand a little gaelic`, `not gaelic speaking/not in scotland`, `unclassified`",
+              "example": "extremely well",
+              "type": "string"
+            },
+            "working_status": {
+              "description": "Allowed values are: `working 30+ hours per week`, `working 8-29 hours per week`, `working less than 8 hours per week`, `no paid work`, `full time education / under school age`, `unclassified`",
+              "example": "working 30+ hours per week",
+              "type": "string"
+            },
+            "panel_member_weights": {
+              "$ref": "#/components/schemas/PanelMemberWeights"
+            }
+          }
+        },
+        "Guest": {
+          "type": "object",
+          "properties": {
+            "household_visited": {
+              "type": "string",
+              "description": "The `household_number` of the household that the guest is visiting."
+            },
+            "guest_demographic": {
+              "type": "string",
+              "description": "The age and gender category that the guest falls into. Allowable values are `Male 4-9`, `Male 10-15`, `Male 16-19`, `Male 20-24`, `Male 25-34`, `Male 35-44`, `Male 45-64`, `Male 65+`, `Female 4-9`, `Female 10-15`, `Female 16-19`, `Female 20-24`, `Female 25-34`, `Female 35-44`, `Female 45-64`, `Female 65+`",
+              "example": "Female 45-64"
+            }
+          }
+        },
+        "Household": {
+          "type": "object",
+          "properties": {
+            "household_number": {
+              "description": "A unique indentifier for the household.",
+              "type": "integer",
+              "example": 16253
+            },
+            "date_valid_for": {
+              "description": "The date to which the characteristics relate.",
+              "format": "dd-mm-yyyy",
+              "type": "string",
+              "example": "01-01-2020"
+            },
+            "2014_mosaic_classification": {
+              "description": "2014 Mosaic Classification available for data relating to 16th March 2015 onwards. Refer to Appendix BARB2014AP23 2014 Mosaic Classification",
+              "type": "string",
+              "example": "side street singles"
+            },
+            "bbc/itv_segment": {
+              "description": "See [Appendix BARB2010AP02]()",
+              "type": "string",
+              "example": "midlands"
+            },
+            "bbc_region_code": {
+              "description": "See [Appendix BARB2010AP01]()",
+              "type": "string",
+              "example": "london"
+            },
+            "bbc_sub_reporting_region": {
+              "description": "Allowed values are: `bbc wales (north)`, `bbc wales (west)`, `bbc wales (south)`, `bbc yorkshire and lincolnshire (humber)`, `bbc yorkshire and lincolnshire (not humber)`, `bbc south (oxford)`, `bbc south (hannington)`, `bbc south (rowridge)`, `bbc scotland (north)`, `bbc scotland (east)`, `bbc scotland (west)`, `bbc ulster (east)`, `bbc ulster (west)`, `bbc east (west)`, `bbc east (east)`, `no bbc sub region`, ` unclassified`",
+              "example": "bbc wales (north)",
+              "type": "string"
+            },
+            "broadband": {
+              "description": "Indicates whether the household has broadband at home.",
+              "type": "boolean",
+              "example": true
+            },
+            "demographic_cell": {
+              "description": "Cell of Primary Control Matrix into which household falls. See [Appendix BARB2010AP0]()",
+              "type": "string",
+              "example": "tbc"
+            },
+            "language_spoken_at_home": {
+              "description": "Allowed values are: `welsh`, `english`, `welsh & english equally`, `welsh and other language than english (equally)`, `other`, `undefined`",
+              "example": "welsh",
+              "type": "string"
+            },
+            "mosaic_classification": {
+              "description": "Mosaic UK is Experian’s system for classification of UK households – available in data from 1 stOctober 2013. Refer to Appendix BARB2010AP22 for Mosaic Classifications. As of PV2 delivered on 17th December 2019, only value 99 will be reported",
+              "type": "string",
+              "example": "side street singles"
+            },
+            "number_of_computers": {
+              "description": "Number of Computers/Tablets in the household. Range 0 - 999. 999 = Unclassified Currently populated with ‘999’ - Availability of valid data – tbc",
+              "type": "integer",
+              "example": 2
+            },
+            "number_of_dvds": {
+              "description": "Range 0 – 9",
+              "type": "integer",
+              "example": 2
+            },
+            "number_of_people": {
+              "description": "Range 01 – 16",
+              "type": "integer",
+              "example": 2
+            },
+            "number_of_pvrs": {
+              "description": "Range 0 – 9",
+              "type": "integer",
+              "example": 2
+            },
+            "number_of_tv_sets": {
+              "description": "Range 00 – 32 (Homes may temporarily have zero TV sets, although in such cases they will not be included in the responding sample).",
+              "type": "integer",
+              "example": 2
+            },
+            "number_of_vcrs": {
+              "description": "Range 0 – 9",
+              "type": "integer",
+              "example": 2
+            },
+            "number_of_dvd_players_(not_recorders)": {
+              "description": "Range 0 – 9. 9 can mean 9 or more devices",
+              "type": "integer",
+              "example": 2
+            },
+            "number_of_dvd_recorders": {
+              "description": "Range 0 – 9. 9 can mean 9 or more devices",
+              "type": "integer",
+              "example": 2
+            },
+            "number_of_other_pvrs": {
+              "description": "Range 0 – 9.",
+              "type": "integer",
+              "example": 2
+            },
+            "number_of_sky+_pvrs": {
+              "description": "Count of number of Sky + PVRs in the home. Range 0 – 9.",
+              "type": "integer",
+              "example": 2
+            },
+            "panel_membership_status": {
+              "description": "Allowed values are: `home on panel (valid reporter)`, `home dropped off panel (non reporter)`",
+              "example": "home on panel (valid reporter)",
+              "type": "string"
+            },
+            "presence_of_children": {
+              "description": "Allowed values are: `no children`, `with children aged 0-3 years`, `with children aged 4-9 years`, `with children aged 0-3 and 4-9 years`, `with children aged 10-15 years`, `with children aged 0-3 and 10-15 years`, `with children aged 4-9 and 10-15 years`, `with children aged 0-3 and 4-9 and 10-15 years`, `unclassified`",
+              "example": "no children",
+              "type": "string"
+            },
+            "replication_factor": {
+              "description": "Number of times the household has been replicated following the panel expansion. This corresponds to the total number of replicates of the home. See [Appendix AP27](). Date TBC",
+              "type": "integer",
+              "example": 2
+            },
+            "s4c_segment": {
+              "description": "See [Appendix BARB2010AP02]() for details",
+              "type": "string",
+              "example": "swansea"
+            },
+            "social_class": {
+              "description": "Allowable values are `ab`, `c1`, `c2`, `d`, `e`. Blank is ‘unclassified’",
+              "type": "string",
+              "example": "ab"
+            },
+            "welsh_speaking_home": {
+              "description": "Allowed values are: `wholly welsh speaking` (all individuals 4+ are of fluency 1, 2, 3 or 4), `partly welsh speaking` (some individuals 4+ are of fluency 1, 2, 3 or 4 with other being 5 or 6), `non welsh speaking`, `unclassified`",
+              "example": "wholly welsh speaking",
+              "type": "string"
+            }
+          }
+        },
+        "Device": {
+          "description": "Any device, including TVs, that can be used to view content.",
+          "type": "object",
+          "properties": {
+            "date_valid_for": {
+              "description": "The date to which the characteristics relate.",
+              "format": "dd-mm-yyyy",
+              "type": "string",
+              "example": "01-01-2020"
+            },
+            "device_type": {
+              "description": "Allowed values are `tv`, `computer`, `tablet`, `smartphone`, `other`",
+              "type": "string",
+              "example": "tv"
+            },
+            "device_on_panel": {
+              "description": "False if the device is no longer on the panel.",
+              "type": "boolean",
+              "example": true
+            },
+            "tv_set_properties": {
+              "$ref": "#/components/schemas/TV"
+            }
+          }
+        },
+        "TV": {
+          "type": "object",
+          "properties": {
+            "analogue_cable": {
+              "description": "Allowed values are: `receives analogue cable`, `does not receive analogue cable`, `unclassified`",
+              "example": "receives analogue cable",
+              "type": "string"
+            },
+            "analogue_satellite": {
+              "description": "Allowed values are: `receives analogue satellite`, `does not receive analogue satellite`, `unclassified`",
+              "example": "receives analogue satellite",
+              "type": "string"
+            },
+            "analogue_terrestrial": {
+              "description": "Allowed values are: `receives analogue terrestrial`, `does not receive analogue terrestrial`, `unclassified`",
+              "example": "receives analogue terrestrial",
+              "type": "string"
+            },
+            "digital_cable": {
+              "description": "Allowed values are: `receives digital cable`, `does not receive digital cable`, `unclassified`",
+              "example": "receives digital cable",
+              "type": "string"
+            },
+            "digital_satellite": {
+              "description": "Allowed values are: `receives digital satellite`, `does not receive digital satellite`, `unclassified`",
+              "example": "receives digital satellite",
+              "type": "string"
+            },
+            "digital_terrestrial": {
+              "description": "Allowed values are: `receives digital terrestrial`, `does not receive digital terrestrial`, `unclassified`",
+              "example": "receives digital terrestrial",
+              "type": "string"
+            },
+            "dvd_player_present": {
+              "description": "Allowed values are: `yes`, `no`, `unclassified`",
+              "example": "yes",
+              "type": "string"
+            },
+            "dvd_recorder_present": {
+              "description": "Allowed values are: `yes`, `no`, `unclassified`",
+              "example": "yes",
+              "type": "string"
+            },
+            "hd_reception": {
+              "description": "Allowed values are: `yes`, `no`, `unclassified`",
+              "example": "yes",
+              "type": "string"
+            },
+            "main_location": {
+              "description": "Allowed values are: `main living room`, `kitchen`, `adults room`, `child bedroom`, `second living/dining room`, `no specific location/frequently moved`, `other`, `unclassified`",
+              "example": "main living room",
+              "type": "string"
+            },
+            "other_pvr_present": {
+              "description": "Allowed values are: `yes`, `no`, `unclassified`",
+              "example": "yes",
+              "type": "string"
+            },
+            "reception_capability_code": {
+              "description": "Describes the method of delivery to the set. Allowed values are: `bt vision`, `tiscali`, `sky`, `pctv`, `freesat`, `non-branded youview (youview effective from 15/07/2013`, ` renamed on 14/03/2016)`, `virgin media`, `games console (from 8/10/2015)`, `bt youview (from 14/03/2016)`, `talktalk youview (from 14/03/2016)`, `now tv (from 07/12/2016) 012 =sky q (from 02/05/2017)`, `unclassified`",
+              "example": "bt vision",
+              "type": "string"
+            },
+            "sky+_pvr_present": {
+              "description": "Allowed values are: `yes`, `no`, `unclassified`",
+              "example": "yes",
+              "type": "string"
+            },
+            "teletext": {
+              "description": "Allowed values are: `with teletext`, ``, `without teletext`, ``, `unclassified`",
+              "example": "with teletext",
+              "type": "string"
+            },
+            "vcr_present": {
+              "description": "Allowed values are: `yes`, `no`, `unclassified`",
+              "example": "yes",
+              "type": "string"
+            }
+          }
+        },
+        "ActivityType": {
+          "description": "Allowed values are:\n\n  - tv live\n  - tv overnight\n  - tv c7\n  - tv 1-28\n  - tv non-linear\n  - total tv screen time\n  - online devices\n  - all",
+          "example": "live viewing (excl targeted advertising)",
+          "type": "string"
+        },
+        "GroupViewingSession": {
+          "description": "A group viewing session is defined as a period of viewing where the device, station, activity_type, platform and set of individuals remains constant within a given household. To put it another way if the station, platform or activity type is changed or a household member or guest enters or leaves the session, then a new session is deemed to have begun.\nNote that for some types of session (e.g. online sessions on YouTube or TikTok) there may be no entries in either  `spots_viewed` or `programmes_viewed`.\nNote also that the time at which something is viewed is not necessarily the same as the time at which it is broadcast. Compare this with the endpoints `programme ratings` and `advertising_spots` where audiences are reported against the broadcast times.",
+          "properties": {
+            "session_start": {
+              "$ref": "#/components/schemas/Datetime"
+            },
+            "session_end": {
+              "$ref": "#/components/schemas/Datetime"
+            },
+            "household": {
+              "$ref": "#/components/schemas/Household"
+            },
+            "panel_viewers": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/PanelMember"
+              }
+            },
+            "guest_viewers": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Guest"
+              }
+            },
+            "programmes_viewed": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ProgrammeEvent"
+              }
+            },
+            "spots_viewed": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/SpotEvent"
+              }
+            },
+            "device": {
+              "$ref": "#/components/schemas/Device"
+            },
+            "station": {
+              "$ref": "#/components/schemas/Station"
+            },
+            "platform": {
+              "type": "string",
+              "description": "The platform via which the viewing took place. Allowed values are `analogue terrestrial`, `digital terrestrial`, `analogue satellite`, `digital satellite`, `analogue_cable`, `digital cable`, `online via tv and peripherals`, `online via other Device`"
+            },
+            "activity_type": {
+              "$ref": "#/components/schemas/ActivityType"
+            },
+            "content_asset_item_offset": {
+              "description": "The minute offset (from the beginning) of the viewed Content Asset Library Item when the viewing session began",
+              "type": "string"
+            },
+            "interactive_bar_code_identifier": {
+              "description": "A 9 character numeric identifier that will be converted to the full length interactive bar code.",
+              "type": "string"
+            },
+            "playback_type": {
+              "description": "A flag denoting the type of playback device, published against activity types. \n Allowed values are: `n/a`, `vcr device`, `pvr device`, `dvdr device`, `dvdr-pvr combi`, `other device.`",
+              "example": "vcr device",
+              "type": "string"
+            },
+            "sky_ultra_hd": {
+              "description": "A flag to indicate whether viewing was performed via Sky Ultra HD.",
+              "type": "boolean"
+            },
+            "start_of_recording": {
+              "$ref": "#/components/schemas/Datetime"
+            },
+            "targeted_promotion": {
+              "description": "A flag to indicate whether a Targeted Promotion has been viewed",
+              "type": "boolean"
+            },
+            "vod_indicator": {
+              "description": "A flag to identify that viewing has been identified as coming from an on-demand service Allowed values are: `not on-demand`, `on-demand`, `not identified`",
+              "example": "not on-demand",
+              "type": "string"
+            },
+            "vod_provider": {
+              "$ref": "#/components/schemas/VOD"
+            },
+            "response_code": {
+              "type": "string",
+              "description": "This indicates whether viewing data for the home was successfully collected. Allowed values are\n- \"normal\" Data was collected to the normal schedule (i.e. at or after 2am on the day after the relevant Date of Transmission)\n- \"late\" Data was collected at a later date – too late to be included in the daily reporting sample for overnight reporting\n- \"holiday\" Data was collected on schedule and the home had indicated they were on holiday by pushing the meter “Holiday” button."
+            }
+          }
+        },
+        "VOD": {
+          "type": "object",
+          "properties": {
+            "vod_provider": {
+              "description": "Identifies the overall provider via which the VOD service was delivered. For details of codes used, refer to [BARB2010AP20]().",
+              "type": "string",
+              "example": "netflix"
+            },
+            "vod_service": {
+              "description": "To identify the specific VOD service used. For details of codes used, refer to [BARB2010AP20]().",
+              "type": "string",
+              "example": "tbc"
+            },
+            "vod_type": {
+              "description": "Provides more detail on the VOD service used. For details of codes used, refer to [BARB2010AP20]().",
+              "type": "string",
+              "example": "tbc"
+            }
+          }
+        },
+        "Datetime": {
+          "type": "object",
+          "properties": {
+            "barb_reporting_datetime": {
+              "type": "string",
+              "description": "This reflects the [BARB reporting day](), which starts at 06:00 and ends at 29:59 (5:59 the following day).",
+              "format": "dd-mm-yyyy hh:mm:ss",
+              "example": "27-07-2022 25:29:23"
+            },
+            "barb_polling_datetime": {
+              "type": "string",
+              "description": "This reflects the [BARB polling day](), which starts at 02:00 and ends at 25:59 (02:59 the following day). This attribute will only be present when using the [audiences_by_time]() endpoint.",
+              "format": "dd-mm-yyyy hh:mm:ss",
+              "example": "27-07-2022 25:22:09"
+            },
+            "standard_datetime": {
+              "type": "string",
+              "description": "The date and time using a standard 24 hour clock as opposed to *barb_reporting_datetime* or *barb_polling_datetime*.",
+              "format": "dd-mm-yyyy hh:mm:ss",
+              "example": "27-07-2022 13:12:06"
+            }
+          }
+        },
+        "PanelMemberWeights": {
+          "type": "object",
+          "properties": {
+            "processing_weight": {
+              "type": "number",
+              "description": "This is the processing weight in thousands to four (implied) decimal places, which should be used when aggregating viewing audiences and universes (sample sums of weights).",
+              "example": 342.1235
+            },
+            "adults_commercial_tv_viewing_sextile": {
+              "type": "number",
+              "description": "This is a classification defined for each responding adult based upon his or her total Commercial TV viewing over the preceding twenty-eight days. The adults on each reporting area/panel are then split into six equal weighted categories (by sample sums of weights of respondents) where 1 represents the lightest viewing sixth of all adults up to 6, which represents the heaviest viewing sixth. For non-responders and children this classification will be set to 0.",
+              "example": 2
+            },
+            "adults_total_viewing_sextile": {
+              "type": "number",
+              "description": "See the description for `adults_commercial_tv_viewing_sextile`",
+              "example": 2
+            },
+            "abc1_adults_commercial_tv_viewing_sextile": {
+              "type": "number",
+              "description": "See the description for `adults_commercial_tv_viewing_sextile`",
+              "example": 2
+            },
+            "abc1_adults_total_viewing_sextile": {
+              "type": "number",
+              "description": "See the description for `adults_commercial_tv_viewing_sextile`",
+              "example": 2
+            },
+            "16_to_34_adults_commercial_tv_viewing_sextile": {
+              "type": "number",
+              "description": "See the description for `adults_commercial_tv_viewing_sextile`",
+              "example": 2
+            },
+            "16_to_34_adults_total_viewing_sextile": {
+              "type": "number",
+              "description": "See the description for `adults_commercial_tv_viewing_sextile`",
+              "example": 2
+            }
+          }
+        },
+        "Error": {
+          "type": "object",
+          "required": [
+            "code",
+            "message"
+          ],
+          "properties": {
+            "code": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "message": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "oAuth": {
+          "type": "oauth2",
+          "description": "This API uses OAuth 2 with the implicit grant flow. [More info](https://api.example.com/docs/auth)",
+          "flows": {
+            "implicit": {
+              "authorizationUrl": "https://barb.co.uk/oauth2/authorize",
+              "scopes": {
+                "read_aggregated_data": "Provides access to the endpoints *advertising_spots*, *programme_ratings* and *audiences_by_time*.",
+                "read_panel_data": "Provides access to all endpoints."
+              }
+            }
+          }
+        }
+      }
+    },
+    "security": [
+      {
+        "oAuth": []
+      }
+    ]
+  }
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        spec: jtest,
+        dom_id: '#swagger-ui',
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        layout: "StandaloneLayout",
+        showCommonExtensions: true,
+      });
+    };
+  </script>
+</body>
+</html>
